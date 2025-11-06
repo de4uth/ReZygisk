@@ -5,53 +5,59 @@ plugins {
     alias(libs.plugins.agp.lib) apply false
 }
 
-fun String.execute(currentWorkingDir: File = file("./")): String {
+fun String.execute(currentWorkingDir: File = File("./")): String {
     val byteOut = ByteArrayOutputStream()
     project.exec {
         workingDir = currentWorkingDir
-        commandLine = split("\\s".toRegex())
+        commandLine = this@execute.split("\\s+".toRegex())
         standardOutput = byteOut
+        errorOutput = byteOut
     }
-    return String(byteOut.toByteArray()).trim()
+    return byteOut.toString().trim()
 }
 
 val gitCommitCount = "git rev-list HEAD --count".execute().toInt()
 val gitCommitHash = "git rev-parse --verify --short HEAD".execute()
 
-val moduleId by extra("rezygisk")
-val moduleName by extra("ReZygisk")
-val verName by extra("v1.0.0")
-val verCode by extra(gitCommitCount)
-val commitHash by extra(gitCommitHash)
-val minAPatchVersion by extra(10655)
-val minKsuVersion by extra(10940)
-val minKsudVersion by extra(11425)
-val minMagiskVersion by extra(26402)
-val androidMinSdkVersion by extra(26)
-val androidTargetSdkVersion by extra(34)
-val androidCompileSdkVersion by extra(34)
-val androidBuildToolsVersion by extra("34.0.0")
-val androidCompileNdkVersion by extra("27.2.12479018")
-val androidSourceCompatibility by extra(JavaVersion.VERSION_11)
-val androidTargetCompatibility by extra(JavaVersion.VERSION_11)
+extra["moduleId"] = "rezygisk"
+extra["moduleName"] = "ReZygisk"
+extra["verName"] = "v1.0.0"
+extra["verCode"] = gitCommitCount
+extra["commitHash"] = gitCommitHash
+extra["minAPatchVersion"] = 10655
+extra["minKsuVersion"] = 10940
+extra["minKsudVersion"] = 11425
+extra["minMagiskVersion"] = 26402
+extra["androidMinSdkVersion"] = 26
+extra["androidTargetSdkVersion"] = 34
+extra["androidCompileSdkVersion"] = 34
+extra["androidBuildToolsVersion"] = "34.0.0"
+extra["androidCompileNdkVersion"] = "27.2.12479018"
+extra["androidSourceCompatibility"] = JavaVersion.VERSION_11
+extra["androidTargetCompatibility"] = JavaVersion.VERSION_11
 
-tasks.register("Delete", Delete::class) {
-    delete(layout.buildDirectory.get())
+tasks.register<Delete>("clean") {
+    delete(layout.buildDirectory)
 }
 
 fun Project.configureBaseExtension() {
-    extensions.findByType(LibraryExtension::class)?.run {
+    extensions.findByType(LibraryExtension::class)?.apply {
         namespace = "com.performanc.org.rezygisk"
-        compileSdk = androidCompileSdkVersion
-        ndkVersion = androidCompileNdkVersion
-        buildToolsVersion = androidBuildToolsVersion
+        compileSdk = extra["androidCompileSdkVersion"] as Int
+        ndkVersion = extra["androidCompileNdkVersion"] as String
+        buildToolsVersion = extra["androidBuildToolsVersion"] as String
 
         defaultConfig {
-            minSdk = androidMinSdkVersion
+            minSdk = extra["androidMinSdkVersion"] as Int
         }
 
         lint {
             abortOnError = true
+        }
+
+        compileOptions {
+            sourceCompatibility = extra["androidSourceCompatibility"] as JavaVersion
+            targetCompatibility = extra["androidTargetCompatibility"] as JavaVersion
         }
     }
 }
