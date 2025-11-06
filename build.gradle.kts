@@ -2,7 +2,8 @@ import com.android.build.gradle.LibraryExtension
 import java.io.ByteArrayOutputStream
 
 plugins {
-    alias(libs.plugins.agp.lib) apply false
+    // Use the standard Android Library plugin directly
+    id("com.android.library") version "8.5.2" apply false
 }
 
 fun String.execute(currentWorkingDir: File = File("./")): String {
@@ -16,9 +17,11 @@ fun String.execute(currentWorkingDir: File = File("./")): String {
     return byteOut.toString().trim()
 }
 
+// --- Git info ---
 val gitCommitCount = "git rev-list HEAD --count".execute().toInt()
 val gitCommitHash = "git rev-parse --verify --short HEAD".execute()
 
+// --- Project metadata ---
 extra["moduleId"] = "rezygisk"
 extra["moduleName"] = "ReZygisk"
 extra["verName"] = "v1.0.0"
@@ -36,10 +39,12 @@ extra["androidCompileNdkVersion"] = "27.2.12479018"
 extra["androidSourceCompatibility"] = JavaVersion.VERSION_11
 extra["androidTargetCompatibility"] = JavaVersion.VERSION_11
 
+// --- Clean task ---
 tasks.register<Delete>("clean") {
     delete(layout.buildDirectory)
 }
 
+// --- Configure all library modules ---
 fun Project.configureBaseExtension() {
     extensions.findByType(LibraryExtension::class)?.apply {
         namespace = "com.performanc.org.rezygisk"
