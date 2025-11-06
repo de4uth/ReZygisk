@@ -2,7 +2,7 @@ import com.android.build.gradle.LibraryExtension
 import java.io.ByteArrayOutputStream
 
 plugins {
-    id("com.android.library") apply false // ❌ no version here
+    alias(libs.plugins.agp.lib) apply false
 }
 
 fun String.execute(currentWorkingDir: File = File("./")): String {
